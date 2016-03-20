@@ -9,5 +9,5 @@ abc
 <div id=my_div></div>
 <script src="{% asset_path render_map.js %}"></script>
 <script>
-t([[10,10], [1,4], [15, 18], [1,5], [0,12], [12,0]]);
+plot_freq_map([1,-3,5,7,-20,-100, 0, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], "my_div");
 </script>
