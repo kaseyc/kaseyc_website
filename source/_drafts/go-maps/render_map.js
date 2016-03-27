@@ -1,13 +1,10 @@
-// Compute transparency based off the closeness to the max
+// Compute stone radius based off the closeness to the max
 // Interpolate based on the natural log to compensate for large outliers
-function compute_alpha(num, max) {
-    if (num == 0) {
-        return 0;
-    }
-    var x0 = 0,
+function compute_radius(num, max) {
+    var x0 = Math.log(1),
         x1 = Math.log(max),
-        y0 = 0.1,
-        y1 = 1.0,
+        y0 = 0.1,//0.1,
+        y1 = 0.45,//1.0,
         x = Math.log(Math.abs(num));
 
     return y0 + ((y1 - y0) * ((x - x0) / (x1 - x0)));
@@ -19,7 +16,6 @@ function rgba(c, a) {
         res += c + ", ";
     }
     return res + a + ")";
-
 }
 
 function plot_freq_map(data, location) {
@@ -43,6 +39,8 @@ function plot_freq_map(data, location) {
         innerHeight = outerHeight - margin.top - margin.bottom,
         width = innerWidth - board.left - board.right,
         height = innerHeight - board.top - board.bottom;
+
+    var boardColor = "#bb9966";
 
     var xScale = d3.scale.linear()
         .domain([0, 18])
@@ -73,7 +71,7 @@ function plot_freq_map(data, location) {
     svg.append("rect")
         .attr("width", innerWidth)
         .attr("height", innerHeight)
-        .attr("fill", "#bb9966");
+        .attr("fill", boardColor);
 
     // Add a transform to reset the origin to inside the margin
     svg = svg.append('g').attr("transform",
@@ -119,26 +117,42 @@ function plot_freq_map(data, location) {
         return Math.abs(d);
     });
 
+    // Define the div for the tooltip
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
     svg.selectAll("circle")
         .data(fmap)
         .enter()
         .append("circle")
+        .select(function(d) {
+            return d ? this : null;
+        })
         .attr("cx", function(d, i) {
             return xScale(i % 19);
         })
         .attr("cy", function(d, i) {
             return yScale(Math.floor(i / 19));
         })
-        .attr("r", Math.min(xScale(.4), yScale(.4)))
+        .attr("r", function(d) {
+            return xScale(compute_radius(d, max_val));
+        })
         .attr("fill", function(d) {
-            var c = d < 0 ? 0 : 255;
-            var a = compute_alpha(d, max_val);
-            return rgba(c, a);
-        }).attr("stroke", function(d) {
-            var c = d < 0 ? 0 : 255;
-            a = d ? 0.5 : 0;
-            return rgba(c, a);
-        }).attr("stroke-width", 1);
+            return d < 0 ? "black" : "white";
+        }).on("mouseover", function(d) {
+            div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            div.html(Math.abs(d))
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            div.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
 }
 
 Array.prototype.elemAdd = function(other) {
@@ -150,11 +164,12 @@ Array.prototype.elemAdd = function(other) {
 function compute_freq_map(data, years, ranks) {
     var fmap = Array.apply(null, Array(19*19)).map(Number.prototype.valueOf, 0);
     var samples = 0;
-    for (year in data) {
+    var bset = data.first
+    for (year in bset) {
         if (year >= years[0] && year <= years[1]) {
-            for (rank in data[year]) {
-                samples += data[year][rank].samples;
-                fmap.elemAdd(data[year][rank]['all']);
+            for (rank in bset[year]) {
+                samples += bset[year][rank].samples;
+                fmap.elemAdd(bset[year][rank].board);
             }
         }
     }
