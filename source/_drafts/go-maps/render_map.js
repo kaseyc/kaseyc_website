@@ -77,6 +77,7 @@ function plot_freq_map(data, location) {
     svg = svg.append('g').attr("transform",
         "translate(" + board.left + "," + board.top + ")");
 
+    var lineColor = "#454545"
     svg.selectAll("line.horizontalGrid").data(yScale.ticks(19)).enter()
         .append("line")
         .attr({
@@ -91,7 +92,7 @@ function plot_freq_map(data, location) {
             },
             "fill": "none",
             "shape-rendering": "crispEdges",
-            "stroke": "black",
+            "stroke": lineColor,
             "stroke-width": "1px"
         });
 
@@ -109,7 +110,7 @@ function plot_freq_map(data, location) {
             },
             "fill": "none",
             "shape-rendering": "crispEdges",
-            "stroke": "black",
+            "stroke": lineColor,
             "stroke-width": "1px"
         });
 
