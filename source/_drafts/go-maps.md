@@ -8,6 +8,7 @@ abc
 
 <div id=my_div></div>
 <script src="{% asset_path render_map.js %}"></script>
+<script src="{% asset_path freq_maps.js %}"></script>
 <script>
-plot_freq_map([1,-3,5,7,-20,-100, 0, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], "my_div");
+plot_freq_map(compute_freq_map(freq_maps, [1600,2000]), "my_div");
 </script>

@@ -6,7 +6,7 @@ function compute_alpha(num, max) {
     }
     var x0 = 0,
         x1 = Math.log(max),
-        y0 = 0.15,
+        y0 = 0.1,
         y1 = 1.0,
         x = Math.log(Math.abs(num));
 
@@ -23,8 +23,10 @@ function rgba(c, a) {
 }
 
 function plot_freq_map(data, location) {
+    var fmap = data.board;
+    var samples = data.samples;
     var margin = {
-            top: 50,
+            top: 20,
             right: 20,
             bottom: 20,
             left: 20
@@ -57,12 +59,13 @@ function plot_freq_map(data, location) {
 
     // Add metadata
     svg.append("text")
-        .attr("x", (width / 2))
-        .attr("y", 0 - (margin.top / 2))
-        .attr("text-anchor", "middle")
+        .attr("x", margin.left)
+        .attr("y", margin.top - 5)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("fill", "black")
         .style("font-size", "16px")
-        .style("text-decoration", "underline")
-        .text("Value vs Date Graph");
+        .text("Number of samples: " + samples);
 
     svg = svg.append('g').attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -112,12 +115,12 @@ function plot_freq_map(data, location) {
             "stroke-width": "1px"
         });
 
-    var max_val = d3.max(data, function(d) {
+    var max_val = d3.max(fmap, function(d) {
         return Math.abs(d);
     });
 
     svg.selectAll("circle")
-        .data(data)
+        .data(fmap)
         .enter()
         .append("circle")
         .attr("cx", function(d, i) {
@@ -131,5 +134,29 @@ function plot_freq_map(data, location) {
             var c = d < 0 ? 0 : 255;
             var a = compute_alpha(d, max_val);
             return rgba(c, a);
-        });
+        }).attr("stroke", function(d) {
+            var c = d < 0 ? 0 : 255;
+            a = d ? 0.5 : 0;
+            return rgba(c, a);
+        }).attr("stroke-width", 1);
+}
+
+Array.prototype.elemAdd = function(other) {
+    for (i = 0; i < this.length; i++) {
+        this[i] += other[i];
+    }
+}
+
+function compute_freq_map(data, years, ranks) {
+    var fmap = Array.apply(null, Array(19*19)).map(Number.prototype.valueOf, 0);
+    var samples = 0;
+    for (year in data) {
+        if (year >= years[0] && year <= years[1]) {
+            for (rank in data[year]) {
+                samples += data[year][rank].samples;
+                fmap.elemAdd(data[year][rank]['all']);
+            }
+        }
+    }
+    return {board: fmap, samples: samples };
 }
