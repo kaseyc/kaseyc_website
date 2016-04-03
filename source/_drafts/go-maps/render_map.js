@@ -1,6 +1,7 @@
 // Compute stone radius based off the closeness to the max
 // Interpolate based on the natural log to compensate for large outliers
 function compute_radius(num, max) {
+    if (num == 0) { return 0;}
     var x0 = Math.log(1),
         x1 = Math.log(max),
         y0 = 0.1,//0.1,
@@ -18,13 +19,13 @@ function rgba(c, a) {
     return res + a + ")";
 }
 
-function plot_freq_map(data, location) {
-    var fmap = data.board;
-    var samples = data.samples;
+// Generates a board
+// Returns an object with the board and some metadata (scales, etc)
+function init_board(location) {
     var margin = {
             top: 20,
             right: 20,
-            bottom: 20,
+            bottom: 30,
             left: 20
         },
         board = {
@@ -55,15 +56,6 @@ function plot_freq_map(data, location) {
         .attr("width", outerWidth)
         .attr("height", outerHeight);
 
-    // Add metadata
-    svg.append("text")
-        .attr("x", margin.left)
-        .attr("y", margin.top - 5)
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "10px")
-        .attr("fill", "black")
-        .style("font-size", "16px")
-        .text("Number of samples: " + samples);
 
     svg = svg.append('g').attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -77,7 +69,8 @@ function plot_freq_map(data, location) {
     svg = svg.append('g').attr("transform",
         "translate(" + board.left + "," + board.top + ")");
 
-    var lineColor = "#454545"
+    var lineColor = "#454545";
+
     svg.selectAll("line.horizontalGrid").data(yScale.ticks(19)).enter()
         .append("line")
         .attr({
@@ -114,22 +107,29 @@ function plot_freq_map(data, location) {
             "stroke-width": "1px"
         });
 
+    return {svg: svg, xScale: xScale, yScale: yScale, textHeight: innerHeight };
+}
+
+// Draws the stones on the board according to frequency.
+function plot_freq_map(data, svg_info) {
+    var fmap = data.board;
+    var samples = data.samples;
+    var svg = svg_info.svg;
+    var xScale = svg_info.xScale;
+    var yScale = svg_info.yScale;
+    var textHeight = svg_info.textHeight;
+
     var max_val = d3.max(fmap, function(d) {
         return Math.abs(d);
     });
 
-    // Define the div for the tooltip
-    var div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
+    var stones = svg.selectAll("circle").data(fmap);
 
-    svg.selectAll("circle")
-        .data(fmap)
-        .enter()
-        .append("circle")
-        .select(function(d) {
-            return d ? this : null;
-        })
+    //Transition stones that changed values
+    stones.enter().append("circle");
+
+    stones
+        .transition().duration(1200)
         .attr("cx", function(d, i) {
             return xScale(i % 19);
         })
@@ -138,22 +138,27 @@ function plot_freq_map(data, location) {
         })
         .attr("r", function(d) {
             return xScale(compute_radius(d, max_val));
-        })
+        }).filter(function(d) {
+            return d != 0;
+    })
         .attr("fill", function(d) {
-            return d < 0 ? "black" : "white";
-        }).on("mouseover", function(d) {
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            div.html(Math.abs(d))
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-        })
-        .on("mouseout", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
+            if (d < 0) {
+                return d3.hcl("black");
+            } else if (d > 0) {
+                return d3.hcl("white");
+            } else {
+                return null;
+            }
         });
+    stones.exit().transition().duration(800).attr("r", 0).remove();    // Add metadata
+    // svg.append("text")
+    //     .attr("x", 0)
+    //     .attr("y", textHeight)
+    //     .attr("font-family", "sans-serif")
+    //     .attr("font-size", "10px")
+    //     .attr("fill", "black")
+    //     .style("font-size", "10px")
+    //     .text("Number of samples: " + samples);
 }
 
 Array.prototype.elemAdd = function(other) {
@@ -165,14 +170,23 @@ Array.prototype.elemAdd = function(other) {
 function compute_freq_map(data, years, ranks) {
     var fmap = Array.apply(null, Array(19*19)).map(Number.prototype.valueOf, 0);
     var samples = 0;
-    var bset = data.first
-    for (year in bset) {
+    for (year in data) {
         if (year >= years[0] && year <= years[1]) {
-            for (rank in bset[year]) {
-                samples += bset[year][rank].samples;
-                fmap.elemAdd(bset[year][rank].board);
+            for (rank in data[year]) {
+                samples += data[year][rank].samples;
+                fmap.elemAdd(data[year][rank].board);
             }
         }
     }
     return {board: fmap, samples: samples };
+}
+
+function cycle(svg_info) {
+    names = ['all', 'win', 'first'];
+    idx = 0;
+
+    return function() {
+        plot_freq_map(compute_freq_map(fmaps[names[idx]], [1600,2000]), svg_info);
+        idx = (idx+1) % 3;
+    };
 }

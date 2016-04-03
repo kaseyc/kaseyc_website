@@ -5,10 +5,17 @@ intro: Test 2 3
 ---
 abc
 <script src="http://d3js.org/d3.v3.js"></script>
-
-<div id=my_div></div>
+<link rel="stylesheet" type="text/css" href="/vendor/nouislider.min.css">
+{% vendor nouislider.min.js %}
+<div>
+<div id=all_div></div>
+<div id=all_slider></div>
+</div>
+<div id=win_div></div>
+<div id=first_div></div>
 <script src="{% asset_path render_map.js %}"></script>
 <script src="{% asset_path freq_maps.js %}"></script>
 <script>
-plot_freq_map(compute_freq_map(fmaps, [1600,2000]), "my_div");
+var svg_info = init_board("all_div");
+window.setInterval(cycle(svg_info), 1500);
 </script>
