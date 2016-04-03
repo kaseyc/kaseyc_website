@@ -1,11 +1,13 @@
 // Compute stone radius based off the closeness to the max
 // Interpolate based on the natural log to compensate for large outliers
 function compute_radius(num, max) {
-    if (num == 0) { return 0;}
+    if (num == 0) {
+        return 0;
+    }
     var x0 = Math.log(1),
         x1 = Math.log(max),
-        y0 = 0.1,//0.1,
-        y1 = 0.45,//1.0,
+        y0 = 0.1, //0.1,
+        y1 = 0.45, //1.0,
         x = Math.log(Math.abs(num));
 
     return y0 + ((y1 - y0) * ((x - x0) / (x1 - x0)));
@@ -107,7 +109,12 @@ function init_board(location) {
             "stroke-width": "1px"
         });
 
-    return {svg: svg, xScale: xScale, yScale: yScale, textHeight: innerHeight };
+    return {
+        svg: svg,
+        xScale: xScale,
+        yScale: yScale,
+        textHeight: innerHeight
+    };
 }
 
 // Draws the stones on the board according to frequency.
@@ -129,7 +136,7 @@ function plot_freq_map(data, svg_info) {
     stones.enter().append("circle");
 
     stones
-        .transition().duration(1200)
+        .transition().duration(350)
         .attr("cx", function(d, i) {
             return xScale(i % 19);
         })
@@ -140,17 +147,17 @@ function plot_freq_map(data, svg_info) {
             return xScale(compute_radius(d, max_val));
         }).filter(function(d) {
             return d != 0;
-    })
+        })
         .attr("fill", function(d) {
             if (d < 0) {
-                return d3.hcl("black");
+                return "black";
             } else if (d > 0) {
-                return d3.hcl("white");
+                return "white";
             } else {
                 return null;
             }
         });
-    stones.exit().transition().duration(800).attr("r", 0).remove();    // Add metadata
+    stones.exit().transition().duration(800).attr("r", 0).remove(); // Add metadata
     // svg.append("text")
     //     .attr("x", 0)
     //     .attr("y", textHeight)
@@ -168,7 +175,7 @@ Array.prototype.elemAdd = function(other) {
 }
 
 function compute_freq_map(data, years, ranks) {
-    var fmap = Array.apply(null, Array(19*19)).map(Number.prototype.valueOf, 0);
+    var fmap = Array.apply(null, Array(19 * 19)).map(Number.prototype.valueOf, 0);
     var samples = 0;
     for (year in data) {
         if (year >= years[0] && year <= years[1]) {
@@ -178,15 +185,26 @@ function compute_freq_map(data, years, ranks) {
             }
         }
     }
-    return {board: fmap, samples: samples };
+    return {
+        board: fmap,
+        samples: samples
+    };
 }
 
-function cycle(svg_info) {
-    names = ['all', 'win', 'first'];
-    idx = 0;
+function create_board(board_name) {
+    var svg_info = init_board(board_name + "_board");
+    var slider = document.getElementById(board_name + "_slider");
+    noUiSlider.create(slider, {
+        start: [1600, 2000],
+        connect: true,
+        range: {
+            'min': 1600,
+            'max': 2000
+        },
+        step: 100
+    });
 
-    return function() {
-        plot_freq_map(compute_freq_map(fmaps[names[idx]], [1600,2000]), svg_info);
-        idx = (idx+1) % 3;
-    };
+    slider.noUiSlider.on('update', function(_, _, values) {
+        plot_freq_map(compute_freq_map(fmaps[board_name], values), svg_info);
+    });
 }

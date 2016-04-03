@@ -8,7 +8,7 @@ abc
 <link rel="stylesheet" type="text/css" href="/vendor/nouislider.min.css">
 {% vendor nouislider.min.js %}
 <div>
-<div id=all_div></div>
+<div id=all_board></div>
 <div id=all_slider></div>
 </div>
 <div id=win_div></div>
@@ -16,6 +16,5 @@ abc
 <script src="{% asset_path render_map.js %}"></script>
 <script src="{% asset_path freq_maps.js %}"></script>
 <script>
-var svg_info = init_board("all_div");
-window.setInterval(cycle(svg_info), 1500);
+create_board("all");
 </script>
