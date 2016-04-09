@@ -5,24 +5,23 @@ categories:
   - Procedural Generation
 date: 2014-01-06 00:14:37
 tags: WebGL,
-comments: false
 intro: Building islands with WebGL.
 ---
 
 UCLA's 3D graphics class, CS 174A, had a final project to build a nontrivial, interative 3D graphics project in ~ 4 weeks. Four friends and I created a multiplayer third-person tank shooter using WebGL. Each player controls a tank and attempts to be the last tank standing. My contribution was creating the map for the game. We decided to make the map an island, as it allowed us to limit the playing field without resorting to invisible walls or other obvious barriers. To make things interesting, I decided to make the island procedurally generated, to provide a unique experience each time the game is played. About 60% of my time was spent working on getting the map generated and draw-able, and the other 40% was spent tweaking values on the generator to get results that looked nice and made for good gameplay. This post covers the latter portion and details the steps I took to go from nothing to the the island seen below.
 
-{% asset_img final.png  Finished island. %}
+![Finished island](assets/final.png)
 
 **1\. Making the terrain**
 To start, I generated a heightmap using a simplex noise function (an improved version of Perlin noise). I used banksean's Javascript implementation, which can be found on [this page](https://gist.github.com/banksean/304522). The heightmap is represented as a square array of vertices, and each [z][x] in the array was set to the output of the noise generator for that point. This gives the simplest possible heightmap. The result was pretty underwhelming :(
 
-{% asset_img terrain-1.png Early version. %}
+![Early version](assets/terrain-1.png)
 
 To improve the terrain, I smoothed the transitions by sampling points that were closer together, which was accomplished by multiplying each coordinate by a small value. By reducing the distance between samples, the height variations are reduced (since we are using a smooth distribution) and the resulting hills are less jagged.
 
 While changing the "frequency" that heights are sampled at made the heightmap significantly better in terms of smoothness, it still left a lot to be desired. The downside of sampling points so close together was that it reduced the amount of variance in the map, creating a set of boring hills that were roughly the same size and shape.
 
-{% asset_img generated_terrain2.png %}
+![](assets/generated_terrain2.png)
 
 To give give more shape to the map, I took a weighted sum of several noise values at different sampling frequencies rather than only using one. By combining multiple frequencies I was able to give the map more variance in shape while still preventing height changes from being too jagged. Using different weights for each frequency allowed me to fine tune the general shape of the map by allowing some frequencies to have a greater impact. I chose to give more weight to lower frequencies in order to create large rolling hills with a bit of variance, rather than the flat bumpy terrain I had before. The gist below shows the final implementation of the noise generation function.
 
@@ -71,7 +70,7 @@ The reasons I chose this method were how straightforward it was to implement and
 
 At this point, I now had a fully functional island. An example of what the island looked like at this stage is shown below.
 
-{% asset_img island1.png %}
+![](assets/island1.png)
 
 There was still one last piece of the puzzle before the island was complete. The green and red coloring had to go. At first I tried using a simple grass texture, but it was too uniform, making it hard to see terrain changes. However, by taking advantage of WebGL's multitexturing capabilities, I was able to get some pretty cool results.
 
@@ -138,7 +137,7 @@ else
 
 While this method is not as powerful using splatting or other methods, it is trivial to implement, looks decent, and is easily tweakable. By changing the overlap between regions, I was able to change how fast the transition happened, and in what regions the textures would appear.
 
-{% asset_img island_multi.png %}
+![](assets/island_multi.png)
 
 This final result is what we used in our game, and is what can be seen in the first picture in this post. Although this is not the most sophisticated or powerful generator it served our needs well and allowed for rapid prototyping, which was important given the time contraints we had.
 
