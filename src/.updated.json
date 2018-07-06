@@ -31,9 +31,9 @@
     },
     "styles/screen.styl": {
         "filename": "styles/screen.styl",
-        "hash": "c643fa4055d22ae5ca63105347d91394",
+        "hash": "b683483b8f197e61e61b95b5228f8862",
         "created": "2016-04-04T00:23:10.374Z",
-        "updated": "2016-04-09T21:11:41.657Z"
+        "updated": "2016-04-10T03:11:33.281Z"
     },
     "images/stars.svg": {
         "filename": "images/stars.svg",
@@ -1018,5 +1018,11 @@
         "hash": "d41d8cd98f00b204e9800998ecf8427e",
         "created": "2016-04-09T22:07:44.827Z",
         "updated": "2016-04-09T22:07:44.827Z"
+    },
+    "scripts/anim.js": {
+        "filename": "scripts/anim.js",
+        "hash": "059d89ef688f88392617e96d8d505706",
+        "created": "2016-04-10T02:56:22.314Z",
+        "updated": "2016-04-10T02:56:22.314Z"
     }
 }

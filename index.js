@@ -19,9 +19,10 @@ var Metalsmith = require('metalsmith'),
 var join = function(dir) {
     return function(files, metalsmith, done) {
         var path = metalsmith.path() + '/' + dir;
-        called = false;
-        metalsmith.read(path, function() {
-            new_files = arguments[1];
+        metalsmith.read(path, function(err, new_files) {
+            if (err) {
+                done(err);
+            }
             for (fname in new_files) {
                 if (files.hasOwnProperty(fname)) {
                     done(new Error('Duplicate file: ' + fname));
